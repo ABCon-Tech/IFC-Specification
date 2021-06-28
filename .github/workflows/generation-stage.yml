@@ -32,10 +32,9 @@ jobs:
         run: |
           echo 'Workspace directory is ${{ github.workspace }}'
           echo 'Home directory is $HOME'
-          & "${{ github.workspace }}\build\IfcDocLite.exe" "${{ github.workspace }}\IFC4x3" -FES
-          dir schema
+          & "${{ github.workspace }}\build\IfcDocLite.exe" "${{ github.workspace }}\IFC4x3" -FS "${{ github.workspace }}\output"
       - name: Upload schema
         uses: actions/upload-artifact@v2
         with:
           name: ${{ github.event.inputs.version }}
-          path: ${{ github.workspace }}\schema
+          path: ${{ github.workspace }}\output
