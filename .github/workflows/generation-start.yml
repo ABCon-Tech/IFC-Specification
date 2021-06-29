@@ -1,0 +1,161 @@
+# This is a basic workflow to help you get started with Actions
+
+name: generation-stage
+
+# Controls when the action will run. 
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'version string '
+        required: true
+        default: 'IFC4.3.RC'
+
+jobs:
+  generate-changelog:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: develop
+      - name: Run changelog generation
+        run: |
+          echo 'Workspace directory is ${{ github.workspace }}'
+          echo 'Home directory is $HOME'
+          & "${{ github.workspace }}\build\IfcDocLite.exe" "${{ github.workspace }}\IFC4x3" -C 
+          dir changelog
+      - name: Upload schema
+        uses: actions/upload-artifact@v2
+        with:
+          name: changelog
+          path: ${{ github.workspace }}\changelog
+  
+  generate-express:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: develop
+      - name: Run express generation
+        run: |
+          echo 'Workspace directory is ${{ github.workspace }}'
+          echo 'Home directory is $HOME'
+          & "${{ github.workspace }}\build\IfcDocLite.exe" "${{ github.workspace }}\IFC4x3" -FE
+          dir EXPRESS
+      - name: Upload express
+        uses: actions/upload-artifact@v2
+        with:
+          name: EXPRESS
+          path: ${{ github.workspace }}\EXPRESS
+
+  generate-xml:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: develop
+      - name: Run xml generation
+        run: |
+          echo 'Workspace directory is ${{ github.workspace }}'
+          echo 'Home directory is $HOME'
+          & "${{ github.workspace }}\build\IfcDocLite.exe" "${{ github.workspace }}\IFC4x3" -FX
+          dir XML
+      - name: Upload xml
+        uses: actions/upload-artifact@v2
+        with:
+          name: XML
+          path: ${{ github.workspace }}\XML
+
+  commit-Specification:
+    runs-on: ubuntu-latest
+    needs: [generate-changelog, generate-express, generate-xml]
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v2
+          with:
+            ref: develop
+        - name: Dowload artifacts
+          uses: actions/download-artifact@v2
+          with:
+            path: "~/artifacts"
+        - name: Move & rename
+          run: |
+          echo "TO WRITE"
+        - name: Add & Commit
+          uses: EndBug/add-and-commit@v7.2.1
+          with:
+            branch: generation/${{ github.event.inputs.version }}
+            default_author: user_info
+        - name: Create pull request
+          uses: 
+          with:
+
+  generate-html:
+    runs-on: windows-latest
+    needs: commit-Specification
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+        with:
+          ref: develop
+      - name: Run html generation
+        run: |
+          echo 'Workspace directory is ${{ github.workspace }}'
+          echo 'Home directory is $HOME'
+          & "${{ github.workspace }}\build\IfcDocLite.exe" "${{ github.workspace }}\IFC4x3" -D
+          dir HTML
+      - name: Upload xml
+        uses: actions/upload-artifact@v2
+        with:
+          name: HTML
+          path: ${{ github.workspace }}\HTML     
+
+  commit-documentation:
+    runs-on: ubuntu-latest
+    needs: generate-html
+      steps:
+        - name: Checkout repository
+          uses: actions/checkout@v2
+          with:
+            repository: bSI-InfraRoom/IFC-Documentation
+            ref: develop
+        - name: Dowload artifacts
+          uses: actions/download-artifact@v2
+          with:
+            path: "~/artifacts"
+        - name: Move & rename
+          run: |
+          echo "TO WRITE"
+        - name: Add & Commit
+          uses: EndBug/add-and-commit@v7.2.1
+          with:
+            branch: develop
+            default_author: user_info
+        - name: Create pull request
+          uses: 
+          with:
+
+
+
+
+
+          - name: Create generation branch
+        run: |
+          echo "Creating generation branch with version ${{ github.event.inputs.version }}"
+          echo git checkout -b "generation/${{ github.event.inputs.version }}"
